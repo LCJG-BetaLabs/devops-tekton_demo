@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: hello-goodbye
+spec:
+  params:
+  - name: revision
+    type: string
+  - name: url
+    type: string
+  tasks:
+    - name: hello
+      taskRef:
+        name: hello
+    - name: goodbye
+      runAfter:
+        - hello
+      taskRef:
+        name: goodbye
+      params:
+      - name: revision
+        value: $(params.revision)
+      - name: url
+        value: $(params.url)
+
