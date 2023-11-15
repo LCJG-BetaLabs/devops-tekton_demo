@@ -1,0 +1,16 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: goodbye
+spec:
+  params:
+  - name: revision
+    type: string
+  - name: url
+    type: string
+  steps:
+    - name: goodbye
+      image: ubuntu
+      script: |
+        #!/bin/bash
+        echo " $(params.revision)/n$(params.url)"    
