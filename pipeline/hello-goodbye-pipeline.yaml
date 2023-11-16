@@ -22,4 +22,57 @@ spec:
         value: $(params.revision)
       - name: url
         value: $(params.url)
+finally:
+    - name: report-pipeline-failed-to-github
+      when:
+        - input: $(tasks.status)
+          operator: in
+          values: [ "Failed", "None" ] # see aggregated status https://tekton.dev/docs/pipelines/pipelines/#using-aggregate-execution-status-of-all-tasks
+      taskRef:
+        name: "github-set-status"
+      params:
+        - name: "STATE"
+          value: "failed"
+        - name: "GITHUB_HOST_URL"
+          value: "$(params.GITHUB_HOST)"
+        - name: "REPO_FULL_NAME"
+          value: "$(params.REPO_PATH_ONLY)"
+        - name: "GITHUB_TOKEN_SECRET_NAME"
+          value: "github-api-secret"
+        - name: "GITHUB_TOKEN_SECRET_KEY"
+          value: "token"
+        - name: "SHA"
+          value: "$(params.SOURCE_REVISION)"
+        - name: "TARGET_URL"
+          value: "$(params.TEKTON_DASHBOARD_HOST)/#/namespaces/default/pipelineruns/$(context.pipelineRun.name)"
+        - name: "CONTEXT"
+          value: "tekton-pipeline"
+        - name: "DESCRIPTION"
+          value: "An error occurred building your commit in Tekton"
+    - name: report-pipeline-success-to-github
+      when:
+          - input: $(tasks.status)
+            operator: in
+            values: [ "Succeeded", "Completed" ] # see aggregated status https://tekton.dev/docs/pipelines/pipelines/#using-aggregate-execution-status-of-all-tasks
+      taskRef:
+        name: "github-set-status"
+      params:
+        - name: "STATE"
+          value: "success"
+        - name: "GITHUB_HOST_URL"
+          value: "$(params.GITHUB_HOST)"
+        - name: "REPO_FULL_NAME"
+          value: "$(params.REPO_PATH_ONLY)"
+        - name: "GITHUB_TOKEN_SECRET_NAME"
+          value: "github-api-secret"
+        - name: "GITHUB_TOKEN_SECRET_KEY"
+          value: "token"
+        - name: "SHA"
+          value: "$(params.SOURCE_REVISION)"
+        - name: "TARGET_URL"
+          value: "$(params.TEKTON_DASHBOARD_HOST)/#/namespaces/default/pipelineruns/$(context.pipelineRun.name)"
+        - name: "CONTEXT"
+          value: "tekton-pipeline"
+        - name: "DESCRIPTION"
+          value: "Finished building your commit in Tekton"
 
